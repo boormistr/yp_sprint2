@@ -13,4 +13,4 @@ docker-compose exec shard01-a sh -c "mongosh < /scripts/init-shard01.js"
 docker-compose exec shard02-a sh -c "mongosh < /scripts/init-shard02.js"
 
 4. Инициализация роутера.
-docker-compose exec router01 sh -c "mongosh < /scripts/init-router.js"
+docker exec -it router-01 sh -c "mongosh < /scripts/init-router.js"
