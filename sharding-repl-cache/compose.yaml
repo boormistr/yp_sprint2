@@ -1,0 +1,269 @@
+services:
+  router01:
+    image: mongo:6.0.1
+    container_name: router-01
+    command: mongos --port 27017 --configdb rs-config-server/configsvr01:27017,configsvr02:27017,configsvr03:27017 --bind_ip_all
+    ports:
+      - 27117:27017
+    volumes:
+      - ./scripts:/scripts
+    depends_on:
+      - configsvr01
+      - configsvr02
+      - configsvr03
+      - shard01-a
+      - shard01-b
+      - shard01-c
+      - shard02-a
+      - shard02-b
+      - shard02-c
+
+  configsvr01:
+    image: mongo:6.0.1
+    container_name: mongo-config-01
+    command:
+      - mongod
+      - --port
+      - "27017"
+      - --configsvr
+      - --replSet
+      - rs-config-server
+    volumes:
+      - ./scripts:/scripts
+    ports:
+      - 27119:27017
+
+    healthcheck:
+      test: [ "CMD", "mongo", "--eval", "db.adminCommand('ping')" ]
+      interval: 5s
+      start_period: 10s
+
+  configsvr02:
+    image: mongo:6.0.1
+    container_name: mongo-config-02
+    command:
+      - mongod
+      - --port
+      - "27017"
+      - --configsvr
+      - --replSet
+      - rs-config-server
+    volumes:
+      - ./scripts:/scripts
+    ports:
+      - 27120:27017
+    healthcheck:
+      test: [ "CMD", "mongo", "--eval", "db.adminCommand('ping')" ]
+      interval: 5s
+      start_period: 10s
+
+  configsvr03:
+    image: mongo:6.0.1
+    container_name: mongo-config-03
+    command:
+      - mongod
+      - --port
+      - "27017"
+      - --configsvr
+      - --replSet
+      - rs-config-server
+    volumes:
+      - ./scripts:/scripts
+    ports:
+      - 27121:27017
+    healthcheck:
+      test: [ "CMD", "mongo", "--eval", "db.adminCommand('ping')" ]
+      interval: 5s
+      start_period: 10s
+
+  shard01-a:
+    image: mongo:6.0.1
+    container_name: shard-01-node-a
+    command: mongod --port 27017 --shardsvr --replSet rs-shard-01
+    volumes:
+      - ./scripts:/scripts
+    ports:
+      - 27122:27017
+    links:
+      - shard01-b
+      - shard01-c
+    healthcheck:
+      test: [ "CMD", "mongo", "--eval", "db.adminCommand('ping')" ]
+      interval: 5s
+      start_period: 10s
+
+  shard01-b:
+    image: mongo:6.0.1
+    container_name: shard-01-node-b
+    command: mongod --port 27017 --shardsvr --replSet rs-shard-01
+    volumes:
+      - ./scripts:/scripts
+    ports:
+      - 27123:27017
+    healthcheck:
+      test: [ "CMD", "mongo", "--eval", "db.adminCommand('ping')" ]
+      interval: 5s
+      start_period: 10s
+
+  shard01-c:
+    image: mongo:6.0.1
+    container_name: shard-01-node-c
+    command: mongod --port 27017 --shardsvr --replSet rs-shard-01
+    volumes:
+      - ./scripts:/scripts
+    ports:
+      - 27124:27017
+    healthcheck:
+      test: [ "CMD", "mongo", "--eval", "db.adminCommand('ping')" ]
+      interval: 5s
+      start_period: 10s
+
+  shard02-a:
+    image: mongo:6.0.1
+    container_name: shard-02-node-a
+    command: mongod --port 27017 --shardsvr --replSet rs-shard-02
+    volumes:
+      - ./scripts:/scripts
+    ports:
+      - 27125:27017
+    links:
+      - shard02-b
+      - shard02-c
+    healthcheck:
+      test: [ "CMD", "mongo", "--eval", "db.adminCommand('ping')" ]
+      interval: 5s
+      start_period: 10s
+
+  shard02-b:
+    image: mongo:6.0.1
+    container_name: shard-02-node-b
+    command: mongod --port 27017 --shardsvr --replSet rs-shard-02
+    volumes:
+      - ./scripts:/scripts
+    ports:
+      - 27126:27017
+    healthcheck:
+      test: [ "CMD", "mongo", "--eval", "db.adminCommand('ping')" ]
+      interval: 5s
+      start_period: 10s
+
+  shard02-c:
+    image: mongo:6.0.1
+    container_name: shard-02-node-c
+    command: mongod --port 27017 --shardsvr --replSet rs-shard-02
+    volumes:
+      - ./scripts:/scripts
+    ports:
+      - 27127:27017
+    healthcheck:
+      test: [ "CMD", "mongo", "--eval", "db.adminCommand('ping')" ]
+      interval: 5s
+      start_period: 10s
+
+  redis_1:
+    image: "redis:latest"
+    container_name: redis_1
+    ports:
+      - 6379:6379
+    volumes:
+      - redis_1_data:/data
+      - ./redis/redis.conf:/usr/local/etc/redis/redis.conf
+    command: [ "redis-server", "/usr/local/etc/redis/redis.conf" ]
+    networks:
+      app-network:
+        ipv4_address: 173.17.0.21
+
+  redis_2:
+    image: "redis:latest"
+    container_name: redis_2
+    ports:
+      - 6380:6379
+    volumes:
+      - redis_2_data:/data
+      - ./redis/redis.conf:/usr/local/etc/redis/redis.conf
+    command: [ "redis-server", "/usr/local/etc/redis/redis.conf" ]
+    networks:
+      app-network:
+        ipv4_address: 173.17.0.22
+
+  redis_3:
+    image: "redis:latest"
+    container_name: redis_3
+    ports:
+      - 6381:6379
+    volumes:
+      - redis_3_data:/data
+      - ./redis/redis.conf:/usr/local/etc/redis/redis.conf
+    command: [ "redis-server", "/usr/local/etc/redis/redis.conf" ]
+    networks:
+      app-network:
+        ipv4_address: 173.17.0.23
+
+  redis_4:
+    image: "redis:latest"
+    container_name: redis_4
+    ports:
+      - 6382:6379
+    volumes:
+      - redis_4_data:/data
+      - ./redis/redis.conf:/usr/local/etc/redis/redis.conf
+    command: [ "redis-server", "/usr/local/etc/redis/redis.conf" ]
+    networks:
+      app-network:
+        ipv4_address: 173.17.0.24
+
+  redis_5:
+    image: "redis:latest"
+    container_name: redis_5
+    ports:
+      - 6383:6379
+    volumes:
+      - redis_5_data:/data
+      - ./redis/redis.conf:/usr/local/etc/redis/redis.conf
+    command: [ "redis-server", "/usr/local/etc/redis/redis.conf" ]
+    networks:
+      app-network:
+        ipv4_address: 173.17.0.25
+
+  redis_6:
+    image: "redis:latest"
+    container_name: redis_6
+    ports:
+      - 6384:6379
+    volumes:
+      - redis_6_data:/data
+      - ./redis/redis.conf:/usr/local/etc/redis/redis.conf
+    command: [ "redis-server", "/usr/local/etc/redis/redis.conf" ]
+    networks:
+      app-network:
+        ipv4_address: 173.17.0.26
+
+  pymongo_api:
+    container_name: pymongo_api
+    build:
+      context: api_app
+      dockerfile: Dockerfile
+    image: kazhem/pymongo_api:1.0.0
+    depends_on:
+      - router01
+    ports:
+      - 8080:8080
+    environment:
+      REDIS_URL: "redis://redis_1:6379"
+      MONGODB_URL: "mongodb://router01"
+      MONGODB_DATABASE_NAME: "somedb"
+
+networks:
+  app-network:
+    driver: bridge
+    ipam:
+      config:
+        - subnet: 173.17.0.0/16
+
+volumes:
+  redis_1_data: { }
+  redis_2_data: { }
+  redis_3_data: { }
+  redis_4_data: { }
+  redis_5_data: { }
+  redis_6_data: { }
